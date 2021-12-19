@@ -1,0 +1,16 @@
+Script para ping que grava os resultados em um arquivo txt e envia por e-mail.
+
+*OBS: É preciso criar um Scheduler para o script rodar e configurar o e-mail no mikrotik.
+
+:local host 8.8.8.8
+:local packetCount 10
+:local packetSize 56
+:local fileName pingLog
+
+
+/file remove [find where name="$pingLog"]
+:local job [:execute file=$fileName script="/ping address=$host interval=1s  count=$packetCount size=$packetSize"]
+log info "Script ping concluído!";
+:delay $packetCount
+
+/tool e-mail send to="fool@bar.com.br" subject=([/system identity get name] . " Script") from=fool@bar.com.br file=$fileName server=x.x.x.x
