@@ -1,0 +1,32 @@
+Script para ping que registra nos logs e em um arquivo txt os valores mínimo, máximo e médio de latência e envia por e-mail.
+
+*OBS: É preciso criar um Scheduler para o script rodar e configurar o e-mail no mikrotik.
+
+:local avgPing
+:local minPing
+:local maxPing
+:local packetSent
+:local packetReceived
+:local packetLoss
+:local host 8.8.8.8
+:local packetCount 10
+:local packetSize 56
+:local fileName pingFloodLog.txt
+
+/file remove [find where name="$fileName"]
+
+/tool flood-ping $host count=$packetCount size=$packetSize do={
+:set avgPing ($"avg-rtt");
+:set minPing ($"min-rtt");
+:set maxPing ($"max-rtt");
+:set packetSent ($"sent");
+:set packetReceived ($"received");
+:set packetLoss ($packetSent - $packetReceived);
+}
+
+/file print file="$fileName";
+:delay 1
+/file set $fileName content="Pacotes Enviados: $packetSent \nPacotes Recebidos: $packetReceived \nPacotes Perdidos: $packetLoss \nLatência Média: $avgPing \nLatência Máxima: $maxPing \nLatência Minima: $minPing";
+
+
+/tool e-mail send to="fool@bar.com" subject=([/system identity get name] . " Script") from=fool@bar.com  file=$fileName server=x.x.x.x
